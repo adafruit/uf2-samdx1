@@ -77,6 +77,9 @@ static inline void neopixel_send_buffer(const uint8_t *ptr, int numBytes) {
     volatile uint32_t *clraddr = &PORT->Group[portNum].OUTCLR.reg;
 
     neopixel_send_buffer_core(clraddr, pinMask, ptr, numBytes);
+    // Without this delay, NeoPixel may show as very bright green or other random color when user program starts.
+    delay(1);
+    
 }
 
 #endif
