@@ -3,7 +3,7 @@
 
 #define VENDOR_NAME "Itaca Innovation"
 #define PRODUCT_NAME "uChip CircuitPython"
-#define VOLUME_LABEL "UCHIPYTHON"
+#define VOLUME_LABEL "UCHIPYBOOT"
 #define INDEX_URL "https://shop.itaca-innovation.com/"
 #define BOARD_ID "SAMD21E18A-uChip-v1_5"
 
