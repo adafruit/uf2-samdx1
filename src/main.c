@@ -221,10 +221,14 @@ int main(void) {
     // external reset because it interferes with the timing of double-click.
     // "BODVDD" means BOD33.
     if (RSTC->RCAUSE.bit.POR || RSTC->RCAUSE.bit.BODVDD) {
+        int16_t delayTime = 500;
         do {
-            // Check again in 100ms.
-            delay(100);
-        } while (SUPC->STATUS.bit.BOD33DET);
+            delay(1);
+            if (SUPC->STATUS.bit.BOD33DET)
+                delayTime = 500;
+            else
+                --delayTime;
+        } while (delayTime > 0);
     }
 
     // Now enable reset if voltage falls below minimum.
