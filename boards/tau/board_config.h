@@ -7,8 +7,8 @@
 #define INDEX_URL "https://rabidprototypes.com/product/tau"
 #define BOARD_ID "SAMD21E17A-Tau-v0"
 
-#define USB_VID 0x2341
-#define USB_PID 0x004d
+#define USB_VID 0x230a
+#define USB_PID 0x00E9
 
 #define LED_PIN PIN_PA27
 
