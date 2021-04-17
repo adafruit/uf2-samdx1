@@ -26,7 +26,7 @@ static void dfll_sync(void) {
 
 void system_init(void) {
 
-  NVMCTRL->CTRLB.bit.RWS = 1;
+    NVMCTRL->CTRLB.bit.RWS = FLASH_WAIT_STATES;
 
 #if defined(CRYSTALLESS)
   /* Configure OSC8M as source for GCLK_GEN 2 */
