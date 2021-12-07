@@ -41,10 +41,11 @@
  *
  */
 
-
 #define DEFINE_CONFIG_DATA 1
 
 #include "uf2.h"
+
+#ifdef USE_MSC
 
 #include "lib/usb_msc/sbc_protocol.h"
 #include "lib/usb_msc/spc_protocol.h"
@@ -877,3 +878,5 @@ __attribute__((section(".binfo"))) __attribute__((__used__)) const UF2_BInfo bin
 #endif
     .info_uf2 = infoUf2File,
 };
+
+#endif

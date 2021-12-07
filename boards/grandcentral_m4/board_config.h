@@ -3,8 +3,8 @@
 
 #define VENDOR_NAME "Adafruit Industries"
 #define PRODUCT_NAME "Grand Central M4 Express"
-#define VOLUME_LABEL "GCM4BOOT"
-#define INDEX_URL "http://adafru.it/4064"
+#define VOLUME_LABEL "SWORDFISH"
+#define INDEX_URL "http://zealandia.systems/"
 #define BOARD_ID "SAMD51P20A-GrandCentral-v0"
 
 #define USB_VID 0x239A

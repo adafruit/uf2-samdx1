@@ -1,4 +1,4 @@
-BOARD=zero
+BOARD=grandcentral_m4
 -include Makefile.user
 include boards/$(BOARD)/board.mk
 CC=arm-none-eabi-gcc
@@ -142,7 +142,7 @@ qc \n\
 " > $(BUILD_PATH)/flash.jlink
 
 jlink-flash: $(BUILD_PATH)/$(NAME).bin $(BUILD_PATH)/flash.jlink
-	JLinkExe -if swd -device AT$(CHIP_VARIANT) -speed 4000 -CommanderScript $(BUILD_PATH)/flash.jlink
+	/cygdrive/c/Program\ Files\ (x86)/SEGGER/JLink/ProgramJLinkExe -if swd -device AT$(CHIP_VARIANT) -speed 4000 -CommanderScript $(BUILD_PATH)/flash.jlink
 
 wait:
 	sleep 5
@@ -167,7 +167,7 @@ $(EXECUTABLE): $(OBJECTS)
 	@echo
 
 $(BUILD_PATH)/uf2_version.h: Makefile
-	echo "#define UF2_VERSION_BASE \"$(UF2_VERSION_BASE)\""> $@
+	$(shell echo "#define UF2_VERSION_BASE \"$(UF2_VERSION_BASE)\""> $@)
 
 $(SELF_EXECUTABLE): $(SELF_OBJECTS)
 	$(CC) -L$(BUILD_PATH) $(LDFLAGS) \

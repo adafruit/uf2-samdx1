@@ -45,10 +45,12 @@ const char devDescriptor[] = {
 // but it seems to be resolved
 #if USE_WEBUSB
     0x10,
+    0x02,           //
 #else
     0x00,
+		0x01,
 #endif
-    0x02,           //
+
     0xEF,           // bDeviceClass:    Misc
     0x02,           // bDeviceSubclass:
     0x01,           // bDeviceProtocol:
@@ -65,7 +67,8 @@ const char devDescriptor[] = {
     0x01            // bNumConfigs
 };
 
-#define CFG_DESC_SIZE (32 + USE_CDC * (58 + 8) + USE_HID * 32 + USE_WEBUSB * 23)
+//#define CFG_DESC_SIZE (32 + USE_CDC * (58 + 8) + USE_HID * 32 + USE_WEBUSB * 23)
+#define CFG_DESC_SIZE (9 + USE_CDC * (8 + 9 + 5 + 4 + 5 + 5 + 7 + 9 + 7 + 7) + USE_MSC * 23)
 #define HID_IF_NUM (USE_CDC ? 3 : 1)
 #define WEB_IF_NUM (HID_IF_NUM + 1)
 
@@ -116,7 +119,7 @@ char cfgDescriptor[] = {
     0x02,          // CbDescriptorType
     CFG_DESC_SIZE, // CwTotalLength 2 EP + Control
     0x00,
-    1 + 2 * USE_CDC + USE_HID + USE_WEBUSB, // CbNumInterfaces
+    2 * USE_CDC + USE_MSC + USE_HID + USE_WEBUSB, // CbNumInterfaces
     0x01,                                   // CbConfigurationValue
     0x00,                                   // CiConfiguration
     0x80,                                   // CbmAttributes 0x80 - bus-powered
@@ -212,6 +215,7 @@ char cfgDescriptor[] = {
 #endif
 
     // MSC
+#if USE_MSC
 
     9,               /// descriptor size in bytes
     4,               /// descriptor type - interface
@@ -238,6 +242,7 @@ char cfgDescriptor[] = {
     PKT_SIZE,       /// maximum packet size
     0,
     0, /// maximum NAK rate
+#endif
 
 #if USE_HID
     // HID

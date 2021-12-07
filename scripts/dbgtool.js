@@ -63,7 +63,7 @@ function main() {
 
     if (!pkgDir) fatal("cannot find Arduino packages directory")
 
-    let openocdPath = pkgDir + "tools/openocd/0.10.0-arduino1-static/"
+    let openocdPath = pkgDir + "tools/openocd/0.10.0-arduino7/"
     if (!fs.existsSync(openocdPath)) fatal("openocd not installed in Arduino")
 
     let openocdBin = openocdPath + "bin/openocd"
@@ -79,7 +79,8 @@ function main() {
 
     let args = ["-d2",
         "-s", openocdPath + "/share/openocd/scripts/",
-        "-f", "interface/cmsis-dap.cfg",
+        "-f", "interface/jlink.cfg",
+        "-c", "transport select swd",
         "-f", "target/at91samdXX.cfg",
         "-c", cmd]
 
