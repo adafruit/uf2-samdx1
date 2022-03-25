@@ -1,0 +1,8 @@
+name: check-build
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+
+jobs:
+  build:
+    uses: Zealandia-Systems/Swordfish/.github/workflows/build-func.yml@main

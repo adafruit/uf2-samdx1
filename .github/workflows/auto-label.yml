@@ -1,0 +1,19 @@
+name: auto-label
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+  #pull_request_target:
+  #  types: [opened, reopened, synchronize]
+
+jobs:
+  auto-label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Auto Label
+        uses: Bhacaz/label-regex@v1
+        with:
+          field: branch
+          regex: '([a-z]+?)-'
+          lowercase: true
+          token: ${{ github.token }}
+

@@ -1,0 +1,38 @@
+name: release
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  update_draft:
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.step1.outputs.upload_url }}
+      tag_name: ${{ steps.step1.outputs.tag_name }}
+    steps:
+      - id: step1
+        uses: release-drafter/release-drafter@v5
+        with:
+          disable-autolabeler: true
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+  tag:
+    needs: update_draft
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update Tag
+        uses: richardsimko/update-tag@v1
+        with:
+          tag_name: ${{ needs.update_draft.outputs.tag_name }}-draft
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+  build:
+    needs: tag
+    uses: Zealandia-Systems/Swordfish/.github/workflows/build-func.yml@main
+    with:
+      upload_url: ${{ needs.update_draft.outputs.upload_url }}

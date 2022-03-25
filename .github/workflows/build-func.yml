@@ -1,0 +1,56 @@
+name: build
+on:
+  workflow_call:
+    inputs:
+      upload_url:
+        type: string
+
+jobs:
+  build:
+    name: ${{matrix.config.name}}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        config:
+          - { name: P1, machine-type: 1, machine-name: P1 }
+          - { name: P2, machine-type: 2, machine-name: P2 }
+          - { name: P3, machine-type: 3, machine-name: P3 }
+          - { name: P4, machine-type: 4, machine-name: P4 }
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+          
+      - run: git fetch --prune --unshallow
+      - name: Install GCC
+        uses: carlosperate/arm-none-eabi-gcc-action@v1
+        id: arm-none-eabi-gcc-action
+        with:
+          release: '10.3-2021.10'
+
+      - name: Install Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+
+      - name: Install Ninja
+        uses: ashutoshvarma/setup-ninja@master
+        with:
+          version: 1.10.0
+
+      - name: CMake configure and build
+        uses: ashutoshvarma/action-cmake-build@master
+        with:
+          build-dir: ${{runner.workspace}}/build
+          build-type: Release
+          target: uf2
+          configure-options: -G Ninja -DCMAKE_TOOLCHAIN_FILE=${{runner.workspace}}/Swordfish/cmake/toolchain-gcc.cmake -DSWORDFISH_MACHINE_TYPE=${{matrix.config.machine-type}} -DSWORDFISH_MACHINE_NAME=${{matrix.config.machine-name}}
+      
+      - name: Upload Assets
+        uses: shogo82148/actions-upload-release-asset@v1
+        if: inputs.upload_url != ''
+        with:
+          upload_url: ${{inputs.upload_url}}
+          asset_path: ${{runner.workspace}}/build/*.uf2
+          overwrite: true
