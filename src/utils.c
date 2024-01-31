@@ -79,7 +79,12 @@ int writeNum(char *buf, uint32_t n, bool full) {
 void resetIntoApp() {
     // reset without waiting for double tap (only works for one reset)
     RGBLED_set_color(COLOR_LEAVE);
+#ifdef SRAM_BL_SIZE
+    if ( *DBL_TAP_PTR != DBL_TAP_MAGIC_SRAM_BL)
+        *DBL_TAP_PTR = DBL_TAP_MAGIC_QUICK_BOOT;
+#else
     *DBL_TAP_PTR = DBL_TAP_MAGIC_QUICK_BOOT;
+#endif
     NVIC_SystemReset();
 }
 

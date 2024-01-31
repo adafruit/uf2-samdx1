@@ -219,8 +219,18 @@ void write_block(uint32_t block_no, uint8_t *data, bool quiet, WriteState *state
         return;
     }
 
+#ifdef SRAM_BL_SIZE
+    bool    use_flash = bl->targetAddr >= APP_START_ADDRESS && bl->targetAddr < FLASH_SIZE;
+    bool    use_sram  = bl->targetAddr >= SRAM_BASE_ADDR && bl->targetAddr < (SRAM_BASE_ADDR + SRAM_BL_SIZE);
+#endif
+
     if ((bl->flags & UF2_FLAG_NOFLASH) || bl->payloadSize != 256 || (bl->targetAddr & 0xff) ||
-        bl->targetAddr < APP_START_ADDRESS || bl->targetAddr >= FLASH_SIZE) {
+#ifdef SRAM_BL_SIZE
+        !(use_flash||use_sram)
+#else
+        bl->targetAddr < APP_START_ADDRESS || bl->targetAddr >= FLASH_SIZE
+#endif
+        ){
 #if USE_DBG_MSC
         if (!quiet)
             logval("invalid target addr", bl->targetAddr);
@@ -229,7 +239,22 @@ void write_block(uint32_t block_no, uint8_t *data, bool quiet, WriteState *state
         // copied from a device; we still want to count these blocks to reset properly
     } else {
         // logval("write block at", bl->targetAddr);
+#ifdef SRAM_BL_SIZE
+        if ( use_flash) {
+            flash_write_row((void *)bl->targetAddr, (void *)bl->data);
+            *DBL_TAP_PTR = 0;
+        }else{
+            memcpy((void*)bl->targetAddr, (void*)bl->data, FLASH_ROW_SIZE);
+            if ( bl->targetAddr == SRAM_BASE_ADDR ){
+                uint32_t bootAddr = bl->data[4] | (bl->data[5]<<8) | (bl->data[6]<<16) | (bl->data[7]<<24);
+                if( bootAddr > SRAM_BASE_ADDR && bootAddr < (SRAM_BASE_ADDR + SRAM_BL_SIZE) ){
+                    *DBL_TAP_PTR  = DBL_TAP_MAGIC_SRAM_BL;
+                }
+            }
+        }
+#else
         flash_write_row((void *)bl->targetAddr, (void *)bl->data);
+#endif
     }
 
     if (state && bl->numBlocks) {

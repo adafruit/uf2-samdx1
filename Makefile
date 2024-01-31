@@ -19,7 +19,7 @@ WFLAGS = \
 -Wno-deprecated-declarations -Wpacked -Wredundant-decls -Wnested-externs \
 -Wlong-long -Wunreachable-code -Wcast-align \
 -Wno-missing-braces -Wno-overflow -Wno-shadow -Wno-attributes -Wno-packed -Wno-pointer-sign
-CFLAGS = $(COMMON_FLAGS) \
+CFLAGS += $(COMMON_FLAGS) \
 -x c -c -pipe -nostdlib \
 --param max-inline-insns-single=500 \
 -fno-strict-aliasing -fdata-sections -ffunction-sections \
@@ -29,9 +29,25 @@ $(WFLAGS)
 UF2_VERSION_BASE = $(shell git describe --dirty --always --tags)
 
 ifeq ($(CHIP_FAMILY), samd21)
-LINKER_SCRIPT=scripts/samd21j18a.ld
-BOOTLOADER_SIZE=8192
-SELF_LINKER_SCRIPT=scripts/samd21j18a_self.ld
+	BOOTLOADER_SIZE				= 8192
+	SRAM_BASE_ADDR				= 0x20000000
+	ifeq ($(USE_SRAM_BL_FLASH),1)
+		CFLAGS				+= -DSRAM_BASE_ADDR=$(SRAM_BASE_ADDR) -DSRAM_BL_SIZE=0x2800
+		ifdef CONV_SRAM_BL
+			CFLAGS			+= -DUSE_STD_FLASH_BL
+			UPDATE_BL_OFST		= $(BOOTLOADER_SIZE)
+			SELF_LINKER_SCRIPT	= scripts/samd21j17a_self_conv_bl.ld
+		else
+			UPDATE_BL_OFST		= $(SRAM_BASE_ADDR)
+			SELF_LINKER_SCRIPT	= scripts/samd21j17a_self_sram_bl.ld
+		endif
+		LINKER_SCRIPT			= scripts/samd21j17a_sram_bl.ld
+	else
+
+		UPDATE_BL_OFST			= $(BOOTLOADER_SIZE)
+		LINKER_SCRIPT			= scripts/samd21j18a.ld
+		SELF_LINKER_SCRIPT		= scripts/samd21j18a_self.ld
+	endif
 endif
 
 ifeq ($(CHIP_FAMILY), samd51)
@@ -174,7 +190,7 @@ $(SELF_EXECUTABLE): $(SELF_OBJECTS)
 		 -T$(SELF_LINKER_SCRIPT) \
 		 -Wl,-Map,$(BUILD_PATH)/update-$(NAME).map -o $(BUILD_PATH)/update-$(NAME).elf $(SELF_OBJECTS)
 	arm-none-eabi-objcopy -O binary $(BUILD_PATH)/update-$(NAME).elf $(BUILD_PATH)/update-$(NAME).bin
-	python3 lib/uf2/utils/uf2conv.py -b $(BOOTLOADER_SIZE) -c -o $@ $(BUILD_PATH)/update-$(NAME).bin
+	python3 lib/uf2/utils/uf2conv.py -b $(UPDATE_BL_OFST) -c -o $@ $(BUILD_PATH)/update-$(NAME).bin
 
 $(BUILD_PATH)/%.o: src/%.c $(wildcard inc/*.h boards/*/*.h) $(BUILD_PATH)/uf2_version.h
 	echo "$<"

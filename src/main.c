@@ -96,6 +96,20 @@ extern int8_t led_tick_step;
  *
  */
 static void check_start_application(void) {
+#ifdef SRAM_BL_SIZE
+    register uint32_t app_start_address asm("r6") ;
+
+    bool        boot_sram = *DBL_TAP_PTR == DBL_TAP_MAGIC_SRAM_BL;
+    uint32_t    base_addr = boot_sram ? SRAM_BASE_ADDR : APP_START_ADDRESS;
+    uint32_t    addr_limit = boot_sram ? SRAM_BASE_ADDR+SRAM_BL_SIZE : FLASH_SIZE;
+
+    app_start_address = *(uint32_t *)( base_addr + 4 );
+    if ( app_start_address < base_addr || app_start_address > addr_limit ){
+        /* Stay in bootloader */
+        return;
+    }
+
+#else
     uint32_t app_start_address;
 
     /* Load the Reset Handler address of the application */
@@ -109,6 +123,25 @@ static void check_start_application(void) {
         /* Stay in bootloader */
         return;
     }
+#endif
+
+#if defined(BOOT_LOAD_PIN)
+    volatile PortGroup *boot_port = (volatile PortGroup *)(&(PORT->Group[BOOT_LOAD_PIN / 32]));
+    volatile bool boot_en;
+
+    /* Enable the input mode in Boot GPIO Pin */
+    boot_port->DIRCLR.reg = BOOT_PIN_MASK;
+    boot_port->PINCFG[BOOT_LOAD_PIN & 0x1F].reg = PORT_PINCFG_INEN | PORT_PINCFG_PULLEN;
+    boot_port->OUTSET.reg = BOOT_PIN_MASK;
+    /* Read the BOOT_LOAD_PIN status */
+    boot_en = (boot_port->IN.reg) & BOOT_PIN_MASK;
+
+    /* Check the bootloader enable condition */
+    if (!boot_en) {
+        /* Stay in bootloader */
+        return;
+    }
+#endif
 
 #if USE_SINGLE_RESET
     if (SINGLE_RESET()) {
@@ -126,6 +159,10 @@ static void check_start_application(void) {
     if (RESET_CONTROLLER->RCAUSE.bit.POR) {
         *DBL_TAP_PTR = 0;
     }
+#ifdef SRAM_BL_SIZE
+    else if ( *DBL_TAP_PTR == DBL_TAP_MAGIC_SRAM_BL ) {
+    }
+#endif
     else if (*DBL_TAP_PTR == DBL_TAP_MAGIC) {
         *DBL_TAP_PTR = 0;
         return; // stay in bootloader
@@ -145,11 +182,21 @@ static void check_start_application(void) {
     RGBLED_set_color(COLOR_LEAVE);
 #endif
 
+#ifdef SRAM_BL_SIZE
+    /* Rebase the vector table base address */
+    SCB->VTOR = (uint32_t) base_addr ;
+//    jump_to_app (app_start_address, *(uint32_t *)base_addr);
+//    register uint32_t tmp_start asm("r6") = app_start_address;
+    /* Rebase the Stack Pointer */
+    __set_MSP(*(uint32_t *)base_addr);
+
+#else
     /* Rebase the Stack Pointer */
     __set_MSP(*(uint32_t *)APP_START_ADDRESS);
 
     /* Rebase the vector table base address */
     SCB->VTOR = ((uint32_t)APP_START_ADDRESS & SCB_VTOR_TBLOFF_Msk);
+#endif
 
     /* Jump to application Reset Handler in the application */
     asm("bx %0" ::"r"(app_start_address));

@@ -248,6 +248,7 @@ void padded_memcpy(char *dst, const char *src, int len);
 #endif
 #define DBL_TAP_MAGIC 0xf01669ef // Randomly selected, adjusted to have first and last bit set
 #define DBL_TAP_MAGIC_QUICK_BOOT 0xf02669ef
+#define DBL_TAP_MAGIC_SRAM_BL	0xf03669ef
 
 #if USE_SINGLE_RESET
 #ifdef SAMD21
@@ -319,6 +320,11 @@ void RGBLED_set_color(uint32_t color);
 #define LED_RX_OFF()
 #define LED_RX_ON()
 #define LED_RX_TGL()
+#endif
+
+// For BOOT_LOAD_PIN
+#if defined(BOOT_LOAD_PIN)
+#define BOOT_PIN_MASK (1U << (BOOT_LOAD_PIN & 0x1f))
 #endif
 
 extern uint32_t timerHigh, resetHorizon;
