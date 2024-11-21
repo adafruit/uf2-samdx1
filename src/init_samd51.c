@@ -5,7 +5,7 @@ uint32_t current_cpu_frequency_MHz = 48;
 
 void system_init(void) {
     // Automatic wait states.
-    NVMCTRL->CTRLA.bit.AUTOWS = 1;
+    NVMCTRL->CTRLA.bit.AUTOWS = FLASH_WAIT_STATES;
 
     // Output GCLK0 to Metro M4 D5. This way we can see if/when we mess it up.
     // PORT->Group[1].PINCFG[14].bit.PMUXEN = true;
