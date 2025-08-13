@@ -52,7 +52,16 @@ INCLUDES += -I$(BUILD_PATH)
 
 
 ifeq ($(CHIP_FAMILY), samd21)
+SUFFIX = := $(shell printf '%s' '$(CHIP_VARIANT)' | grep -oE '[A-Za-z]+$$')
+ifeq ($(findstring A, $(SUFFIX)), A)
 INCLUDES += -Ilib/samd21/samd21a/include/
+else
+ifeq ($(findstring BU, $(SUFFIX)), BU)
+INCLUDES += -Ilib/samd21/samd21b/include/
+else
+INCLUDES += -Ilib/samd21/samd21c/include/
+endif
+endif
 endif
 
 ifeq ($(CHIP_FAMILY), samd51)
