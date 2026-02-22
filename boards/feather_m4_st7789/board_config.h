@@ -6,6 +6,11 @@
 #define VOLUME_LABEL "FEATHERBOOT"
 #define INDEX_URL "http://adafru.it/3857"
 #define BOARD_ID "SAMD51J19A-FeatherM4-ST7789"
+#define VENDOR_NAME "Dalcorp Solutions Inc."
+#define PRODUCT_NAME "Breadboard Power Supply ST7789"
+#define VOLUME_LABEL "DSIPST7789"
+#define INDEX_URL "http://dalcorpsolutions.com/products/breadboard-power-supply-st7789"
+#define BOARD_ID "SAMD51J19A-ST7789"
 
 #define USB_VID 0x239A
 #define USB_PID 0x0022
