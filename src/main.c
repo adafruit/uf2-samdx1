@@ -315,57 +315,58 @@ int main(void) {
     led_tick_step = 10;
 
     /* Wait for a complete enum on usb or a '#' char on serial line */
-    while (1) {
-        if (USB_Ok()) {
-            if (!main_b_cdc_enable) {
-#if USE_SINGLE_RESET
-                // this might have been set
-                resetHorizon = 0;
-#endif
-                RGBLED_set_color(COLOR_USB);
-                led_tick_step = 1;
-
-#if USE_SCREEN
-                screen_init();
-                draw_drag();
-#endif
-            }
-
-            main_b_cdc_enable = true;
-        }
-
-#if USE_MONITOR
-        // Check if a USB enumeration has succeeded
-        // And com port was opened
-        if (main_b_cdc_enable) {
-            logmsg("entering monitor loop");
-            // SAM-BA on USB loop
-            while (1) {
-                sam_ba_monitor_run();
-            }
-        }
-#if USE_UART
-        /* Check if a '#' has been received */
-        if (!main_b_cdc_enable && usart_sharp_received()) {
-            RGBLED_set_color(COLOR_UART);
-            sam_ba_monitor_init(SAM_BA_INTERFACE_USART);
-            /* SAM-BA on UART loop */
-            while (1) {
-                sam_ba_monitor_run();
-            }
-        }
-#endif
-#else // no monitor
-        if (main_b_cdc_enable) {
-            process_msc();
-        }
-#endif
-
+while (1) {
+    // Check if USB is ready
+    if (USB_Ok()) {
         if (!main_b_cdc_enable) {
-            // get more predictable timings before the USB is enumerated
-            for (int i = 1; i < 256; ++i) {
-                asm("nop");
-            }
+            RGBLED_set_color(COLOR_USB);
+            led_tick_step = 1;
+            main_b_cdc_enable = true;
+            
+            #ifdef BOARD_SCREEN
+            // Initialize screen after USB enumeration
+            screen_init();
+            screen_show_usb_status(true);
+            delay(500);
+            draw_drag();
+            #endif
         }
     }
+
+#if USE_MONITOR
+    // Check if a USB enumeration has succeeded
+    if (main_b_cdc_enable) {
+        logmsg("entering monitor loop");
+        // SAM-BA on USB loop
+        while (1) {
+            sam_ba_monitor_run();
+        }
+    }
+    
+    #if USE_UART
+    /* Check if a '#' has been received */
+    if (!main_b_cdc_enable && usart_sharp_received()) {
+        RGBLED_set_color(COLOR_UART);
+        sam_ba_monitor_init(SAM_BA_INTERFACE_USART);
+        /* SAM-BA on UART loop */
+        while (1) {
+            sam_ba_monitor_run();
+        }
+    }
+    #endif
+#else
+    // When USE_MONITOR is not defined, we need to process MSC
+    if (main_b_cdc_enable) {
+        process_msc();
+    }
+#endif
+
+    // Small delay for timing when USB not enumerated
+    if (!main_b_cdc_enable) {
+        for (int i = 1; i < 256; ++i) {
+            asm("nop");
+        }
+    }
+} // End of main while loop
 }
+

@@ -358,12 +358,24 @@ STATIC_ASSERT(FLASH_NUM_ROWS * 4 == FLASH_NB_OF_PAGES);
 
 extern const char infoUf2File[];
 
+// Screen functions with conditional compilation
 #if USE_SCREEN
 void draw_screen(void);
 void draw_hf2(void);
 void draw_drag(void);
 void screen_init(void);
 void screen_early_init(void);
+void screen_update(void);
+void screen_show_usb_status(bool connected);
+#else
+// Empty inline functions for boards without screens
+static inline void draw_screen(void) {}
+static inline void draw_hf2(void) {}
+static inline void draw_drag(void) {}
+static inline void screen_init(void) {}
+static inline void screen_early_init(void) {}
+static inline void screen_update(void) {}
+static inline void screen_show_usb_status(bool connected) { (void)connected; }
 #endif
 
 #endif

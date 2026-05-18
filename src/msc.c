@@ -50,6 +50,7 @@
 #include "lib/usb_msc/spc_protocol.h"
 #include "lib/usb_msc/usb_protocol.h"
 #include "lib/usb_msc/usb_protocol_msc.h"
+#include "inc/screen_msc.h"
 
 #if !USE_DBG_MSC
 #undef logmsg
@@ -84,6 +85,10 @@ void msc_reset(void) {
     udi_msc_csw_pending = false;
     reset_ep(USB_EP_MSC_IN);
     reset_ep(USB_EP_MSC_OUT);
+    
+#ifdef BOARD_SCREEN
+    screen_msc_reset();
+#endif
 }
 
 //! Structure to receive a CBW packet
@@ -759,33 +764,48 @@ static void udi_msc_sbc_trans(bool b_read) {
     logwrite("\n");
 #endif
 
+#ifdef BOARD_SCREEN
+    if (!b_read) {
+        screen_msc_write_start(udi_msc_nb_block);
+    }
+#endif
+
+    if (!b_read) {
+        screen_msc_write_start(udi_msc_nb_block); 
+    }
+
     for (uint32_t i = 0; i < udi_msc_nb_block; ++i) {
         if (!USB_Ok()) {
             logmsg("Transfer aborted.");
             return;
         }
 
-        // logval("readblk", i);
         if (b_read) {
             read_block(udi_msc_addr + i, block_buffer);
             USB_Write(block_buffer, UDI_MSC_BLOCK_SIZE, USB_EP_MSC_IN);
         } else {
             USB_ReadBlocking(block_buffer, UDI_MSC_BLOCK_SIZE, USB_EP_MSC_OUT, 0);
-
-#if 0
-            check_uf2_handover(block_buffer, udi_msc_nb_block - i - 1, USB_EP_MSC_IN,
-                               USB_EP_MSC_OUT, udi_msc_cbw.dCBWTag);
-#endif
-
+            #ifdef BOARD_SCREEN
+                screen_msc_set_block_data(block_buffer);
+            #endif
+            screen_msc_set_block_data(block_buffer); 
             write_block(udi_msc_addr + i, block_buffer, false, &usbWriteState);
             led_signal();
+            
+            #ifdef BOARD_SCREEN
+            screen_msc_write_block(i);
+            #endif
         }
         udi_msc_csw.dCSWDataResidue -= UDI_MSC_BLOCK_SIZE;
     }
 
-    udi_msc_sense_pass();
+    #ifdef BOARD_SCREEN
+    if (!b_read) {
+        screen_msc_write_complete();
+    }
+    #endif
 
-    // Send status of transfer in CSW packet
+    udi_msc_sense_pass();
     udi_msc_csw_process();
 }
 

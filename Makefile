@@ -82,20 +82,43 @@ COMMON_SRC = \
 	src/init_$(CHIP_FAMILY).c \
 	src/startup_$(CHIP_FAMILY).c \
 	src/usart_sam_ba.c \
-	src/screen.c \
 	src/images.c \
-	src/utils.c
+	src/utils.c \
+
+# Screen driver selection based on SCREEN_TYPE
+ifdef SCREEN_TYPE
+  ifeq ($(SCREEN_TYPE),ST7789)
+    SCREEN_DRIVER = src/screen_st7789.c
+    CFLAGS += -DUSE_SCREEN_ST7789
+  else ifeq ($(SCREEN_TYPE),ST7735)
+    SCREEN_DRIVER = src/screen_st7735.c
+    CFLAGS += -DUSE_SCREEN_ST7735
+  else
+    $(error Unknown SCREEN_TYPE: $(SCREEN_TYPE))
+  endif
+  # All screens get the dispatcher and MSC integration
+  SCREEN_SRC = src/screen.c $(SCREEN_DRIVER) src/screen_msc.c
+  CFLAGS += -DBOARD_SCREEN=1
+else
+  # No SCREEN_TYPE but maybe BOARD_SCREEN is defined in the header
+  # These boards will use the default ST7735 driver
+  SCREEN_SRC = src/screen.c src/screen_st7735.c src/screen_msc.c
+endif
+
+$(info SCREEN_SRC = $(SCREEN_SRC))
 
 SOURCES = $(COMMON_SRC) \
+	$(SCREEN_SRC) \
 	src/cdc_enumerate.c \
 	src/fat.c \
 	src/main.c \
 	src/msc.c \
 	src/sam_ba_monitor.c \
 	src/uart_driver.c \
-	src/hid.c \
+	src/hid.c
 
 SELF_SOURCES = $(COMMON_SRC) \
+	$(SCREEN_SRC) \
 	src/selfmain.c
 
 OBJECTS = $(patsubst src/%.c,$(BUILD_PATH)/%.o,$(SOURCES))
