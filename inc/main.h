@@ -32,7 +32,9 @@
 
 #define CPU_FREQUENCY 48000000
 
+#ifndef FLASH_WAIT_STATES //allow for other wait states 
 #define FLASH_WAIT_STATES 1
+#endif
 
 #ifndef BOOT_USART_MODULE
 #define BOOT_USART_MODULE SERCOM3
