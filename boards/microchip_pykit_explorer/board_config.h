@@ -2,10 +2,10 @@
 #define BOARD_CONFIG_H
 
 #define VENDOR_NAME "Microchip"
-#define PRODUCT_NAME "CircuitPython Nano"
-#define VOLUME_LABEL "CPYNANOBOOT"
+#define PRODUCT_NAME "PyKit Explorer"
+#define VOLUME_LABEL "PYKITBOOT"
 #define INDEX_URL "https://microchip.com"
-#define BOARD_ID "SAMD51J20A-CPyNano-v0"
+#define BOARD_ID "SAME51J20A-PyKitExplorer-v0"
 
 #define USB_VID 0x04D8
 #define USB_PID 0xE52B
